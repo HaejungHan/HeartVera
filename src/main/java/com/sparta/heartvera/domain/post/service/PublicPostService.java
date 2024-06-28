@@ -1,17 +1,21 @@
 package com.sparta.heartvera.domain.post.service;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.heartvera.common.exception.CustomException;
 import com.sparta.heartvera.common.exception.ErrorCode;
 import com.sparta.heartvera.domain.follow.entity.Follow;
 import com.sparta.heartvera.domain.follow.repository.FollowRepository;
+import com.sparta.heartvera.domain.like.entity.LikeEnum;
+import com.sparta.heartvera.domain.like.entity.QLike;
 import com.sparta.heartvera.domain.post.dto.PostRequestDto;
 import com.sparta.heartvera.domain.post.dto.PublicPostResponseDto;
 import com.sparta.heartvera.domain.post.entity.PublicPost;
+import com.sparta.heartvera.domain.post.entity.QPublicPost;
 import com.sparta.heartvera.domain.post.repository.PublicPostRepository;
 import com.sparta.heartvera.domain.user.entity.User;
 import com.sparta.heartvera.domain.user.service.UserService;
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PublicPostService {
 
+  private final EntityManager entityManager;
+  private final JPAQueryFactory queryFactory;
   private final PublicPostRepository postRepository;
   private final UserService userService;
   private final FollowRepository followRepository;
@@ -37,10 +43,15 @@ public class PublicPostService {
     return new PublicPostResponseDto(post);
   }
 
+  // 비익명 게시물 단건 조회
+  @Transactional(readOnly = true)
   public PublicPostResponseDto getPost(Long postId) {
-    PublicPost post = findById(postId);
-
-    return new PublicPostResponseDto(post);
+    PublicPost post = queryFactory
+        .selectFrom(QPublicPost.publicPost)
+        .where(QPublicPost.publicPost.id.eq(postId))
+        .fetchOne();
+    int likeCount = getLikesCount(postId, LikeEnum.PUBPOST);
+    return new PublicPostResponseDto(post, likeCount);
   }
 
   @Transactional
@@ -130,5 +141,14 @@ public class PublicPostService {
     if(post.getUser().getUserSeq().equals(userId)){
       throw new CustomException(ErrorCode.POST_SAME_USER);
     }
+  }
+
+  // 좋아요 count 조회
+  public int getLikesCount(Long contentId, LikeEnum contentType) {
+    return (int) queryFactory
+        .selectFrom(QLike.like)
+        .where(QLike.like.contentId.eq(contentId)
+            .and(QLike.like.contentType.eq(contentType)))
+        .fetchCount();
   }
 }

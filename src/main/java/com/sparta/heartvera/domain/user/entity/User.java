@@ -65,10 +65,10 @@ public class User extends Timestamped {
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
   private List<PasswordHistory> passwordHistories;
 
-  @OneToMany(mappedBy = "toUser", fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "toUser", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Follow> followers;
 
-  @OneToMany(mappedBy = "fromUser", fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "fromUser", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Follow> followings;
 
   public void updateUser(UserRequestDto requestDto) {

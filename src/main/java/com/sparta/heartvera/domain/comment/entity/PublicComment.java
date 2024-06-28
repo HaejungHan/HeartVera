@@ -3,6 +3,7 @@ package com.sparta.heartvera.domain.comment.entity;
 import com.sparta.heartvera.common.Timestamped;
 import com.sparta.heartvera.domain.comment.dto.CommentRequestDto;
 import com.sparta.heartvera.domain.post.entity.Post;
+import com.sparta.heartvera.domain.post.entity.PublicPost;
 import com.sparta.heartvera.domain.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,13 +13,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity
 @Getter
+@Entity
 @NoArgsConstructor
-public class Comment extends Timestamped {
+@Table(name = "public_comment")
+public class PublicComment extends Timestamped {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -32,11 +35,11 @@ public class Comment extends Timestamped {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "post_id", nullable = false)
-  private Post post;
+  private PublicPost publicPost;
 
-  public Comment(CommentRequestDto requestDto, Post post, User user){
+  public PublicComment(CommentRequestDto requestDto, PublicPost publicPost, User user){
     this.contents = requestDto.getContents();
-    this.post = post;
+    this.publicPost = publicPost;
     this.user = user;
   }
 

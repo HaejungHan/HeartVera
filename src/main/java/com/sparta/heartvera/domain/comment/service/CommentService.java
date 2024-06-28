@@ -1,15 +1,20 @@
 package com.sparta.heartvera.domain.comment.service;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.heartvera.common.exception.CustomException;
 import com.sparta.heartvera.common.exception.ErrorCode;
 import com.sparta.heartvera.domain.comment.dto.CommentRequestDto;
 import com.sparta.heartvera.domain.comment.dto.CommentResponseDto;
 import com.sparta.heartvera.domain.comment.dto.PublicCommentResponseDto;
 import com.sparta.heartvera.domain.comment.entity.Comment;
+import com.sparta.heartvera.domain.comment.entity.QComment;
 import com.sparta.heartvera.domain.comment.repository.CommentRepository;
+import com.sparta.heartvera.domain.like.entity.LikeEnum;
+import com.sparta.heartvera.domain.like.entity.QLike;
 import com.sparta.heartvera.domain.post.entity.Post;
 import com.sparta.heartvera.domain.post.service.PostService;
 import com.sparta.heartvera.domain.user.entity.User;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +26,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommentService {
 
+    private final EntityManager entityManager;
+    private final JPAQueryFactory queryFactory;
     private final CommentRepository commentRepository;
     private final PostService postService;
 
@@ -29,6 +36,16 @@ public class CommentService {
         Post post = findPostById(postId);
         Comment comment = commentRepository.save(new Comment(requestDto, post, user));
         return new CommentResponseDto(comment);
+    }
+
+    // 댓글 단건 조회
+    public CommentResponseDto getComment(Long commentId) {
+        Comment comment = queryFactory
+            .selectFrom(QComment.comment)
+            .where(QComment.comment.id.eq(commentId))
+            .fetchOne();
+        int likeCount = getLikesCount(commentId, LikeEnum.COMMENT);
+        return new CommentResponseDto(comment, likeCount);
     }
 
     // 댓글 조회
@@ -85,4 +102,13 @@ public class CommentService {
             throw new CustomException(ErrorCode.COMMENT_SAME_USER);
         }
     }
+
+    public int getLikesCount(Long contentId, LikeEnum contentType) {
+        return (int) queryFactory
+            .selectFrom(QLike.like)
+            .where(QLike.like.contentId.eq(contentId)
+                .and(QLike.like.contentType.eq(contentType)))
+            .fetchCount();
+    }
+
 }

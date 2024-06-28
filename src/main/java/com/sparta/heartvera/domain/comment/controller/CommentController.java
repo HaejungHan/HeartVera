@@ -46,6 +46,13 @@ public class CommentController {
     return ResponseEntity.status(HttpStatus.OK).body(commentService.getComments(postId));
   }
 
+  // 댓글 단건 조회
+  @Operation(summary = "댓글 단건 조회",description = "선택한 댓글을 조회합니다.")
+  @GetMapping("/{postId}/comments/{commentId}")
+  public ResponseEntity<CommentResponseDto> getComment(@PathVariable Long commentId) {
+    return ResponseEntity.status(HttpStatus.OK).body(commentService.getComment(commentId));
+  }
+
   // 댓글 수정
   @Operation(summary = "댓글 수정",description = "댓글의 내용을 수정합니다.")
   @PutMapping("/{postId}/comments/{commentId}")

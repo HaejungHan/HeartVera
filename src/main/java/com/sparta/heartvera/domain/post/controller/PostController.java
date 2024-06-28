@@ -1,11 +1,14 @@
 package com.sparta.heartvera.domain.post.controller;
 
 import com.sparta.heartvera.domain.post.dto.PostRequestDto;
+import com.sparta.heartvera.domain.post.dto.PostResponseDto;
+import com.sparta.heartvera.domain.post.entity.Post;
 import com.sparta.heartvera.domain.post.service.PostService;
 import com.sparta.heartvera.security.service.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,5 +51,11 @@ public class PostController {
     @GetMapping("/")
     public ResponseEntity getAllPost(@RequestParam("page") int page, @RequestParam(value = "amount", defaultValue = "5") int amount) {
         return ResponseEntity.status(HttpStatus.OK).body(postService.getAllPost(page - 1, amount));
+    }
+
+    @Operation(summary = "좋아요한 익명글 목록 조회",description = "내가 좋아요한 익명 게시글을 조회합니다.(한페이지당 5개씩 조회)")
+    @GetMapping("/like")
+    public ResponseEntity<List<PostResponseDto>> getLikePosts(@RequestParam("page") int page, @RequestParam(value = "amount", defaultValue = "5") int amount, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseEntity.status(HttpStatus.OK).body(postService.getLikePosts(page - 1, amount, userDetails.getUser().getUserSeq()));
     }
 }

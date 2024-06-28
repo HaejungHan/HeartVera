@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
 
+
+    EMPTY_LIKE(HttpStatus.NO_CONTENT, "먼저 좋아하는 게시물을 찾아보세요!"),
+
     // 공통 오류 코드
     FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "실패했습니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),

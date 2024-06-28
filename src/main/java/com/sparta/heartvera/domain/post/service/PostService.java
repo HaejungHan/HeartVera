@@ -1,14 +1,25 @@
 package com.sparta.heartvera.domain.post.service;
 
+import static com.sparta.heartvera.domain.like.entity.QLike.like;
+import static com.sparta.heartvera.domain.post.entity.QPost.post;
+
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.heartvera.common.exception.CustomException;
 import com.sparta.heartvera.common.exception.ErrorCode;
+import com.sparta.heartvera.domain.like.entity.LikeEnum;
+import com.sparta.heartvera.domain.like.service.LikeService;
 import com.sparta.heartvera.domain.post.dto.PostRequestDto;
 import com.sparta.heartvera.domain.post.dto.PostResponseDto;
 import com.sparta.heartvera.domain.post.dto.PublicPostResponseDto;
 import com.sparta.heartvera.domain.post.entity.Post;
+import com.sparta.heartvera.domain.post.entity.QPost;
 import com.sparta.heartvera.domain.post.repository.PostRepository;
 import com.sparta.heartvera.domain.user.entity.User;
+import jakarta.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PostService {
 
+    private final LikeService likeService;
+    private final JPAQueryFactory queryFactory;
+    private final EntityManager entityManager;
     private final PostRepository postRepository;
 
     public PostResponseDto savePost(PostRequestDto requestDto, User user) {
@@ -28,10 +42,11 @@ public class PostService {
         return new PostResponseDto(post);
     }
 
+    // 익명 게시물 단건조회
     public PostResponseDto getPost(Long postId) {
-        Post post = findById(postId);
-
-        return new PostResponseDto(post);
+        Post post = postRepository.findByPostId(postId);
+        int likeCount = likeService.getLikesCount(postId, LikeEnum.POST);
+        return new PostResponseDto(post, likeCount);
     }
 
     @Transactional
@@ -61,6 +76,35 @@ public class PostService {
         }
 
         return postList.map(PostResponseDto::new);
+    }
+
+    // 좋아하는 익명 게시글 목록 조회
+    public List<PostResponseDto> getLikePosts(int page, int amount, Long userId) {
+        Pageable pageable = PageRequest.of(page, amount);
+        List<Long> likedPostIds = queryFactory
+            .select(like.contentId)
+            .from(like)
+            .where(like.userId.eq(userId).and(like.contentType.eq(LikeEnum.POST)))
+            .fetch();
+
+        List<Post> postList = queryFactory
+            .selectFrom(post)
+            .where(post.id.in(likedPostIds))
+            .orderBy(post.createdAt.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        if (postList.isEmpty()) {
+            throw new CustomException(ErrorCode.EMPTY_LIKE);
+        }
+
+        List<PostResponseDto> postResponseDtos = new ArrayList<>();
+        for (Post post : postList) {
+            PostResponseDto dto = new PostResponseDto(post);
+            postResponseDtos.add(dto);
+        }
+        return postResponseDtos;
     }
 
     // 좋아요 유효성 검사
@@ -99,4 +143,5 @@ public class PostService {
     public void delete(Post post) {
         postRepository.delete(post);
     }
+
 }

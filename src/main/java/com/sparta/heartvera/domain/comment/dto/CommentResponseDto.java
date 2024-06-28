@@ -10,11 +10,22 @@ public class CommentResponseDto {
   private String contents;
   private LocalDateTime createdAt;
   private LocalDateTime modifiedAt;
+  int likeCount;
+
+  public CommentResponseDto(Comment comment, int likeCount) {
+    this.id = comment.getId();
+    this.contents = comment.getContents();
+    this.createdAt = comment.getCreatedAt();
+    this.modifiedAt = comment.getModifiedAt();
+    this.likeCount = likeCount;
+  }
 
   public CommentResponseDto(Comment comment) {
     this.id = comment.getId();
     this.contents = comment.getContents();
     this.createdAt = comment.getCreatedAt();
     this.modifiedAt = comment.getModifiedAt();
+    this.likeCount = 0;
   }
+
 }

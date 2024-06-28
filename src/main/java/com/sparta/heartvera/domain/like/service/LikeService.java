@@ -1,11 +1,15 @@
 package com.sparta.heartvera.domain.like.service;
 
+import static com.sparta.heartvera.domain.like.entity.QLike.like;
+
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.heartvera.domain.comment.service.CommentService;
 import com.sparta.heartvera.domain.like.entity.Like;
 import com.sparta.heartvera.domain.like.entity.LikeEnum;
 import com.sparta.heartvera.domain.like.repository.LikeRepository;
 import com.sparta.heartvera.domain.post.service.PostService;
 import com.sparta.heartvera.domain.post.service.PublicPostService;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -17,16 +21,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class LikeService {
 
+    private final EntityManager entityManager;
+    private final JPAQueryFactory queryFactory;
     private final LikeRepository likeRepository;
     private final PostService postService;
     private final CommentService commentService;
     private final PublicPostService publicPostService;
-
-
-    // 게시물, 댓글별 좋아요 수 count
-    public int getLikesCount(Long contentId, LikeEnum contentType) {
-        return likeRepository.countByContentIdAndContentType(contentId, contentType);
-    }
 
     // 익명 게시물별 좋아요 toggle 기능
     @Transactional
@@ -66,4 +66,18 @@ public class LikeService {
     private Optional<Like> findLike(Long userId, Long contentId, LikeEnum contentType) {
         return likeRepository.findByUserIdAndContentIdAndContentType(userId, contentId, contentType);
     }
+
+    // 좋아요 count 조회 QueryDSL
+    public int getLikesCount(Long contentId, LikeEnum contentType) {
+        return (int) queryFactory
+            .selectFrom(like)
+            .where(like.contentId.eq(contentId).and(like.contentType.eq(contentType)))
+            .fetchCount();
+    }
+
+    // 게시물, 댓글별 좋아요 수 count (Jpa)
+//    public int getLikesCount(Long contentId, LikeEnum contentType) {
+//        return likeRepository.countByContentIdAndContentType(contentId, contentType);
+//    }
+
 }
