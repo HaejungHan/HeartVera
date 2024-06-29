@@ -2,6 +2,7 @@ package com.sparta.heartvera.domain.user.service;
 
 import com.sparta.heartvera.common.exception.CustomException;
 import com.sparta.heartvera.common.exception.ErrorCode;
+import com.sparta.heartvera.domain.like.repository.LikeRepository;
 import com.sparta.heartvera.domain.user.dto.UserPwRequestDto;
 import com.sparta.heartvera.domain.user.dto.UserRequestDto;
 import com.sparta.heartvera.domain.user.dto.UserResponseDto;
@@ -27,12 +28,15 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LikeRepository likeRepository;
     private final PasswordHistoryRepository passwordHistoryRepository;
 
     // 사용자 프로필 조회
     public UserResponseDto getUser(Long userSeq) {
         User user = findByUserSeq(userSeq);
-        return new UserResponseDto(user);
+        int likedPostCount = likeRepository.getLikedPostCount(userSeq);
+        int likedCommentCount = likeRepository.getLikedCommentCount(userSeq);
+        return new UserResponseDto(user, likedPostCount, likedCommentCount);
     }
 
     // 사용자 프로필 수정

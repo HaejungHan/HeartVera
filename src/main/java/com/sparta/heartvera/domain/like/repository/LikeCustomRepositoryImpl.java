@@ -41,4 +41,20 @@ public class LikeCustomRepositoryImpl implements LikeCustomRepository{
         .fetch();
   }
 
+  public int getLikedPostCount(Long userId) {
+    QLike like = QLike.like;
+    return (int) jpaQueryFactory
+        .selectFrom(QLike.like)
+        .where(QLike.like.userId.eq(userId).and(QLike.like.contentType.eq(LikeEnum.POST)))
+        .fetchCount();
+  }
+
+  public int getLikedCommentCount(Long userId) {
+    QLike like = QLike.like;
+    return (int) jpaQueryFactory
+        .selectFrom(QLike.like)
+        .where(QLike.like.userId.eq(userId).and(QLike.like.contentType.eq(LikeEnum.COMMENT)))
+        .fetchCount();
+  }
+
 }
