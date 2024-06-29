@@ -1,25 +1,23 @@
 package com.sparta.heartvera.domain.post.service;
 
-import static com.sparta.heartvera.domain.like.entity.QLike.like;
 import static com.sparta.heartvera.domain.post.entity.QPost.post;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.heartvera.common.exception.CustomException;
 import com.sparta.heartvera.common.exception.ErrorCode;
 import com.sparta.heartvera.domain.like.entity.LikeEnum;
+import com.sparta.heartvera.domain.like.repository.LikeRepository;
 import com.sparta.heartvera.domain.like.service.LikeService;
 import com.sparta.heartvera.domain.post.dto.PostRequestDto;
 import com.sparta.heartvera.domain.post.dto.PostResponseDto;
 import com.sparta.heartvera.domain.post.dto.PublicPostResponseDto;
 import com.sparta.heartvera.domain.post.entity.Post;
-import com.sparta.heartvera.domain.post.entity.QPost;
 import com.sparta.heartvera.domain.post.repository.PostRepository;
 import com.sparta.heartvera.domain.user.entity.User;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,10 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PostService {
 
-    private final LikeService likeService;
+    private final PostRepository postRepository;
+    private final LikeRepository likeRepository;
+
     private final JPAQueryFactory queryFactory;
     private final EntityManager entityManager;
-    private final PostRepository postRepository;
 
     public PostResponseDto savePost(PostRequestDto requestDto, User user) {
         Post post = postRepository.save(new Post(requestDto, user));
@@ -45,7 +44,7 @@ public class PostService {
     // 익명 게시물 단건조회
     public PostResponseDto getPost(Long postId) {
         Post post = postRepository.findByPostId(postId);
-        int likeCount = likeService.getLikesCount(postId, LikeEnum.POST);
+        int likeCount = likeRepository.getLikesCount(postId, LikeEnum.POST);
         return new PostResponseDto(post, likeCount);
     }
 
@@ -81,11 +80,7 @@ public class PostService {
     // 좋아하는 익명 게시글 목록 조회
     public List<PostResponseDto> getLikePosts(int page, int amount, Long userId) {
         Pageable pageable = PageRequest.of(page, amount);
-        List<Long> likedPostIds = queryFactory
-            .select(like.contentId)
-            .from(like)
-            .where(like.userId.eq(userId).and(like.contentType.eq(LikeEnum.POST)))
-            .fetch();
+        List<Long> likedPostIds = likeRepository.getLikedPostIds(userId);
 
         List<Post> postList = queryFactory
             .selectFrom(post)
@@ -137,7 +132,7 @@ public class PostService {
             return "먼저 작성하여 소식을 알려보세요!";
         }
 
-        return postList.map(PublicPostResponseDto::new);
+        return postList.map(PostResponseDto::new);
     }
 
     public void delete(Post post) {

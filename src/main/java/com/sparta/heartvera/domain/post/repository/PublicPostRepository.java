@@ -10,7 +10,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PublicPostRepository extends JpaRepository<PublicPost, Long> {
+public interface PublicPostRepository extends JpaRepository<PublicPost, Long>, PublicPostCustomRepository {
+
   Page<PublicPost> findByUser_UserSeqInOrderByCreatedAtDesc(Collection<Long> userIds, Pageable pageable);
 
 }

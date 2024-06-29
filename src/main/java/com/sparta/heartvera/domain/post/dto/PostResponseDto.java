@@ -1,9 +1,8 @@
 package com.sparta.heartvera.domain.post.dto;
 
 import com.sparta.heartvera.domain.post.entity.Post;
-import lombok.Getter;
-
 import java.time.LocalDateTime;
+import lombok.Getter;
 
 @Getter
 public class PostResponseDto {

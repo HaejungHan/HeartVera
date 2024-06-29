@@ -33,11 +33,4 @@ public class PublicPostResponseDto {
         this.likeCount = 0;
     }
 
-    public PublicPostResponseDto(Post post) {
-        this.title = post.getTitle();
-        this.content = post.getContent();
-        this.userName = post.getUser().getUserName();
-        this.createdAt = post.getCreatedAt();
-        this.modifiedAt = post.getModifiedAt();
-    }
 }

@@ -21,8 +21,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class LikeService {
 
-    private final EntityManager entityManager;
-    private final JPAQueryFactory queryFactory;
     private final LikeRepository likeRepository;
     private final PostService postService;
     private final CommentService commentService;
@@ -69,10 +67,7 @@ public class LikeService {
 
     // 좋아요 count 조회 QueryDSL
     public int getLikesCount(Long contentId, LikeEnum contentType) {
-        return (int) queryFactory
-            .selectFrom(like)
-            .where(like.contentId.eq(contentId).and(like.contentType.eq(contentType)))
-            .fetchCount();
+        return likeRepository.getLikesCount(contentId, contentType);
     }
 
     // 게시물, 댓글별 좋아요 수 count (Jpa)
