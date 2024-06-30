@@ -96,7 +96,8 @@ public class PostService {
 
         List<PostResponseDto> postResponseDtos = new ArrayList<>();
         for (Post post : postList) {
-            PostResponseDto dto = new PostResponseDto(post);
+            int likedCount = likeRepository.getLikesCount(post.getId(), LikeEnum.POST);
+            PostResponseDto dto = new PostResponseDto(post, likedCount);
             postResponseDtos.add(dto);
         }
         return postResponseDtos;
