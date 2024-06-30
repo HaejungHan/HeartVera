@@ -1,7 +1,5 @@
 package com.sparta.heartvera.domain.like.repository;
 
-import static com.sparta.heartvera.domain.like.entity.QLike.like;
-
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.heartvera.domain.like.entity.LikeEnum;
 import com.sparta.heartvera.domain.like.entity.QLike;
@@ -38,6 +36,15 @@ public class LikeCustomRepositoryImpl implements LikeCustomRepository{
         .select(like.contentId)
         .from(like)
         .where(like.userId.eq(userId).and(like.contentType.eq(LikeEnum.PUBPOST)))
+        .fetch();
+  }
+
+  public List<Long> getLikedCommentIds(Long userId) {
+    QLike like = QLike.like;
+    return jpaQueryFactory
+        .select(like.contentId)
+        .from(like)
+        .where(like.userId.eq(userId).and(like.contentType.eq(LikeEnum.COMMENT)))
         .fetch();
   }
 

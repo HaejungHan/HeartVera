@@ -1,5 +1,7 @@
 package com.sparta.heartvera.domain.comment.service;
 
+import static com.sparta.heartvera.domain.comment.entity.QComment.comment;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.heartvera.common.exception.CustomException;
 import com.sparta.heartvera.common.exception.ErrorCode;
@@ -11,16 +13,18 @@ import com.sparta.heartvera.domain.comment.entity.QComment;
 import com.sparta.heartvera.domain.comment.repository.CommentRepository;
 import com.sparta.heartvera.domain.like.entity.LikeEnum;
 import com.sparta.heartvera.domain.like.entity.QLike;
+import com.sparta.heartvera.domain.like.repository.LikeRepository;
 import com.sparta.heartvera.domain.post.entity.Post;
 import com.sparta.heartvera.domain.post.service.PostService;
 import com.sparta.heartvera.domain.user.entity.User;
 import jakarta.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +32,7 @@ public class CommentService {
 
     private final EntityManager entityManager;
     private final JPAQueryFactory queryFactory;
+    private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
     private final PostService postService;
 
@@ -36,6 +41,32 @@ public class CommentService {
         Post post = findPostById(postId);
         Comment comment = commentRepository.save(new Comment(requestDto, post, user));
         return new CommentResponseDto(comment);
+    }
+
+    // 좋아요한 댓글 목록 조회
+    public List<CommentResponseDto> getLikeComments(int page, int amount, Long userId) {
+        Pageable pageable = PageRequest.of(page, amount);
+        List<Long> likedCommentIds = likeRepository.getLikedCommentIds(userId);
+
+        List<Comment> commentList = queryFactory
+            .selectFrom(comment)
+            .where(comment.id.in(likedCommentIds))
+            .orderBy(comment.createdAt.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        if (commentList.isEmpty()) {
+            throw new CustomException(ErrorCode.EMPTY_LIKE);
+        }
+
+        List<CommentResponseDto> commentResponseDtos = new ArrayList<>();
+        for (Comment comment : commentList) {
+            int likedCount = likeRepository.getLikesCount(comment.getId(), LikeEnum.COMMENT);
+            CommentResponseDto dto = new CommentResponseDto(comment, likedCount);
+            commentResponseDtos.add(dto);
+        }
+        return commentResponseDtos;
     }
 
     // 댓글 단건 조회

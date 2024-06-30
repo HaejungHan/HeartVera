@@ -3,6 +3,7 @@ package com.sparta.heartvera.domain.comment.controller;
 import com.sparta.heartvera.domain.comment.dto.CommentRequestDto;
 import com.sparta.heartvera.domain.comment.dto.CommentResponseDto;
 import com.sparta.heartvera.domain.comment.service.CommentService;
+import com.sparta.heartvera.domain.post.dto.PostResponseDto;
 import com.sparta.heartvera.security.service.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -37,6 +39,13 @@ public class CommentController {
       @AuthenticationPrincipal UserDetailsImpl userDetails) {
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(commentService.createComment(postId, requestDto, userDetails.getUser()));
+  }
+
+  // 좋아요한 익명 댓글 목록 조회
+  @Operation(summary = "좋아요한 익명댓글 목록 조회",description = "내가 좋아요한 익명 댓글을 조회합니다.(한페이지당 5개씩 조회)")
+  @GetMapping("/comments/like")
+  public ResponseEntity<List<CommentResponseDto>> getLikePosts(@RequestParam("page") int page, @RequestParam(value = "amount", defaultValue = "5") int amount, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    return ResponseEntity.status(HttpStatus.OK).body(commentService.getLikeComments(page - 1, amount, userDetails.getUser().getUserSeq()));
   }
 
   // 선택한 게시물의 댓글 조회
