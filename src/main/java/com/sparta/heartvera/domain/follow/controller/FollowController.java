@@ -51,7 +51,7 @@ public class FollowController {
   }
 
   // 내가 팔로우한 사람들 조회
-  @Operation(summary = "내가 팔로우한 사람 조회",description = "본인이 팔로우한 사람의 공개 게시글을 조회합니다.")
+  @Operation(summary = "내가 팔로우한 사람 조회",description = "본인이 팔로우한 사람을 조회합니다.")
   @GetMapping("/followers")
   public ResponseEntity<List<FollowResponseDto>> getFollowings(@AuthenticationPrincipal UserDetailsImpl userDetails) {
     User user = userService.findByUserSeq(userDetails.getUser().getUserSeq());

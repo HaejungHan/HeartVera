@@ -1,6 +1,8 @@
 package com.sparta.heartvera.domain.post.service;
 
+import static com.sparta.heartvera.domain.post.entity.QPost.post;
 import static com.sparta.heartvera.domain.post.entity.QPublicPost.publicPost;
+import static com.sparta.heartvera.domain.user.entity.QUser.user;
 
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -87,6 +89,7 @@ public class PublicPostService {
   }
 
   // 좋아하는 비익명 게시글 목록 조회
+  @Transactional(readOnly = true)
   public List<PublicPostResponseDto> getLikePublicPosts(int page, int amount, Long userId) {
     Pageable pageable = PageRequest.of(page, amount);
     List<Long> likedPostIds = likeRepository.getLikedPublicPostIds(userId);
@@ -112,26 +115,61 @@ public class PublicPostService {
     return publicPostResponseDtos;
   }
 
-  public Object getFollowedPosts(User user, int page, int pageSize) {
+  // 팔로워한 사람들의 비익명게시물 목록 조회(생성일자 기준 정렬)
+  @Transactional(readOnly = true)
+  public List<PublicPostResponseDto> getFollowedPublicPostsOrderByCreatedAt(Long userId, int page, int pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
 
-    User currentUser = userService.findByUserSeq(user.getUserSeq());
-    List<Follow> follows = followRepository.findByFromUser(currentUser);
-    Set<Long> userIds = follows.stream().map((follow)-> follow.getToUser().getUserSeq()).collect(
-        Collectors.toSet());
+    List<Long> followedUserIds = followRepository.findFollowedUserIds(userId);
 
-    Page<PublicPost> publicPosts = publicPostRepository.findByUser_UserSeqInOrderByCreatedAtDesc(userIds, pageable);
+    List<PublicPost> publicPostList = queryFactory
+        .selectFrom(publicPost)
+        .where(publicPost.id.in(followedUserIds))
+        .orderBy(publicPost.createdAt.desc())
+        .offset(pageable.getOffset())
+        .limit(pageable.getPageSize())
+        .fetch();
+
+    if (publicPostList.isEmpty()) {
+      throw new CustomException(ErrorCode.EMPTY_FOLLOW);
+    }
 
     List<PublicPostResponseDto> publicPostResponseDtos = new ArrayList<>();
-
-    for(PublicPost publicPost : publicPosts) {
-        PublicPostResponseDto responseDto = new PublicPostResponseDto(publicPost);
+    for(PublicPost publicPost : publicPostList) {
+        int likedCount = likeRepository.getLikesCount(publicPost.getId(), LikeEnum.PUBPOST);
+        PublicPostResponseDto responseDto = new PublicPostResponseDto(publicPost, likedCount);
         publicPostResponseDtos.add(responseDto);
     }
 
-    if (publicPostResponseDtos.isEmpty()) {
-      return "먼저 관심있는 사람들을 팔로우 해보세요!";
+    return publicPostResponseDtos;
+  }
+
+  // 팔로워한 사람들의 비익명게시물 목록 조회(작성자명 기준 정렬)
+  @Transactional(readOnly = true)
+  public List<PublicPostResponseDto> getFollowedPublicPostsOrderByUsername(Long userId, int page, int pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
+
+    List<Long> followedUserIds = followRepository.findFollowedUserIds(userId);
+
+    List<PublicPost> publicPostList = queryFactory
+        .selectFrom(publicPost)
+        .where(publicPost.id.in(followedUserIds))
+        .orderBy(user.userName.desc())
+        .offset(pageable.getOffset())
+        .limit(pageable.getPageSize())
+        .fetch();
+
+    if (publicPostList.isEmpty()) {
+      throw new CustomException(ErrorCode.EMPTY_FOLLOW);
     }
+
+    List<PublicPostResponseDto> publicPostResponseDtos = new ArrayList<>();
+    for(PublicPost publicPost : publicPostList) {
+      int likedCount = likeRepository.getLikesCount(publicPost.getId(), LikeEnum.PUBPOST);
+      PublicPostResponseDto responseDto = new PublicPostResponseDto(publicPost, likedCount);
+      publicPostResponseDtos.add(responseDto);
+    }
+
     return publicPostResponseDtos;
   }
 
