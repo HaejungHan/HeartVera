@@ -49,6 +49,9 @@ public class PublicPostService {
   @Transactional(readOnly = true)
   public PublicPostResponseDto getPost(Long postId) {
     PublicPost post = publicPostRepository.findByPublicPostId(postId);
+    if (post == null) {
+      throw new CustomException(ErrorCode.POST_NOT_FOUND);
+    }
     int likeCount = likeRepository.getLikesCount(postId, LikeEnum.PUBPOST);
     return new PublicPostResponseDto(post, likeCount);
   }
@@ -87,6 +90,9 @@ public class PublicPostService {
     List<Long> likedPostIds = likeRepository.getLikedPublicPostIds(userId);
     List<PublicPost> publicPostList = publicPostRepository.findByPublicPostId(page, pageSize, likedPostIds);
 
+    if(publicPostList.isEmpty()) {
+      throw new CustomException(ErrorCode.EMPTY_LIKE);
+    }
     List<PublicPostResponseDto> publicPostResponseDtos = new ArrayList<>();
     for (PublicPost publicPost : publicPostList) {
       int likedCount = likeRepository.getLikesCount(publicPost.getId(), LikeEnum.PUBPOST);
@@ -101,8 +107,11 @@ public class PublicPostService {
   public List<PublicPostResponseDto> getFollowedPublicPostsOrderByCreatedAt(Long userId, int page, int pageSize) {
 
     List<Long> followedUserIds = followRepository.findFollowedUserIds(userId);
-
     List<PublicPost> publicPostList = publicPostRepository.findByPublicPostIdOrderByCreatedAt(page, pageSize, followedUserIds);
+
+    if(publicPostList.isEmpty()) {
+      throw new CustomException(ErrorCode.EMPTY_FOLLOW);
+    }
 
     List<PublicPostResponseDto> publicPostResponseDtos = new ArrayList<>();
     for(PublicPost publicPost : publicPostList) {
@@ -122,6 +131,10 @@ public class PublicPostService {
     List<Long> followedUserIds = followRepository.findFollowedUserIds(userId);
 
     List<PublicPost> publicPostList = publicPostRepository.findByPublicPostIdOrderByUsername(page, pageSize, followedUserIds);
+
+    if(publicPostList.isEmpty()) {
+      throw new CustomException(ErrorCode.EMPTY_FOLLOW);
+    }
 
     List<PublicPostResponseDto> publicPostResponseDtos = new ArrayList<>();
     for(PublicPost publicPost : publicPostList) {

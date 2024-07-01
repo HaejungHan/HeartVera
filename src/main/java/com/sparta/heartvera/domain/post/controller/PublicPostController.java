@@ -60,20 +60,24 @@ public class PublicPostController {
     return ResponseEntity.status(HttpStatus.OK).body(publicPostService.getLikePublicPosts(page - 1, pageSize, userDetails.getUser().getUserSeq()));
   }
 
-    @Operation(summary = "팔로우한 사람들의 공개글 전체 조회",description = "내가 팔로우한 사람들의 글을 전체 조회(생성일자 기준, 한페이지당 5개씩 조회)")
-    @GetMapping("/following/created")
-    public ResponseEntity<List<PublicPostResponseDto>> getFollowedPublicPostsOrderByCreatedAt(
-      @AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam("page") int page, @RequestParam(value = "size", defaultValue = "5") int pageSize) {
-     return ResponseEntity.status(HttpStatus.OK)
-        .body(publicPostService.getFollowedPublicPostsOrderByCreatedAt(userDetails.getUser().getUserSeq(),page - 1, pageSize));
-     }
+  @Operation(summary = "팔로우한 사람들의 공개글 전체 조회(생성일자 정렬)", description = "내가 팔로우한 사람들의 글을 전체 조회(생성일자 기준, 한페이지당 5개씩 조회)")
+  @GetMapping("/following/created")
+  public ResponseEntity<List<PublicPostResponseDto>> getFollowedPublicPostsOrderByCreatedAt(
+      @AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam("page") int page,
+      @RequestParam(value = "size", defaultValue = "5") int pageSize) {
+    return ResponseEntity.status(HttpStatus.OK)
+        .body(publicPostService.getFollowedPublicPostsOrderByCreatedAt(
+            userDetails.getUser().getUserSeq(), page - 1, pageSize));
+  }
 
-  @Operation(summary = "팔로우한 사람들의 공개글 전체 조회",description = "내가 팔로우한 사람들의 글을 전체 조회합니다.(작성자명 기준, 한페이지당 5개씩 조회)")
+  @Operation(summary = "팔로우한 사람들의 공개글 전체 조회(작성자명 정렬)", description = "내가 팔로우한 사람들의 글을 전체 조회합니다.(작성자명 기준, 한페이지당 5개씩 조회)")
   @GetMapping("/following/username")
   public ResponseEntity<List<PublicPostResponseDto>> getFollowedPublicPostsOrderByUsername(
-      @AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam("page") int page, @RequestParam(value = "size", defaultValue = "5") int pageSize) {
+      @AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam("page") int page,
+      @RequestParam(value = "size", defaultValue = "5") int pageSize) {
     return ResponseEntity.status(HttpStatus.OK)
-        .body(publicPostService.getFollowedPublicPostsOrderByUsername(userDetails.getUser().getUserSeq(),page - 1, pageSize));
+        .body(publicPostService.getFollowedPublicPostsOrderByUsername(
+            userDetails.getUser().getUserSeq(), page - 1, pageSize));
   }
 
 }
