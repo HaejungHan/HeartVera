@@ -56,8 +56,8 @@ public class PublicPostController {
 
   @Operation(summary = "좋아요한 공개글 목록 조회",description = "내가 좋아요한 공개글을 조회합니다.(한페이지당 5개씩 조회)")
   @GetMapping("/like")
-  public ResponseEntity<List<PublicPostResponseDto>> getLikePublicPosts(@RequestParam("page") int page, @RequestParam(value = "amount", defaultValue = "5") int amount, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-    return ResponseEntity.status(HttpStatus.OK).body(publicPostService.getLikePublicPosts(page - 1, amount, userDetails.getUser().getUserSeq()));
+  public ResponseEntity<List<PublicPostResponseDto>> getLikePublicPosts(@RequestParam("page") int page, @RequestParam(value = "size", defaultValue = "5") int pageSize, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    return ResponseEntity.status(HttpStatus.OK).body(publicPostService.getLikePublicPosts(page - 1, pageSize, userDetails.getUser().getUserSeq()));
   }
 
     @Operation(summary = "팔로우한 사람들의 공개글 전체 조회",description = "내가 팔로우한 사람들의 글을 전체 조회(생성일자 기준, 한페이지당 5개씩 조회)")

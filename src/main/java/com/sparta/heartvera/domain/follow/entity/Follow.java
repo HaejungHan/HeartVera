@@ -22,11 +22,11 @@ public class Follow extends Timestamped {
   @Column(name = "follow_id")
   private Long id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "from_user")
   private User fromUser;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "to_user")
   private User toUser;
 

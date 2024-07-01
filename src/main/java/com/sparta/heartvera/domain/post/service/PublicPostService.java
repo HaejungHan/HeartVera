@@ -1,32 +1,25 @@
 package com.sparta.heartvera.domain.post.service;
 
-import static com.sparta.heartvera.domain.post.entity.QPost.post;
+import static com.sparta.heartvera.domain.like.entity.QLike.like;
 import static com.sparta.heartvera.domain.post.entity.QPublicPost.publicPost;
 import static com.sparta.heartvera.domain.user.entity.QUser.user;
 
-
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.heartvera.common.exception.CustomException;
 import com.sparta.heartvera.common.exception.ErrorCode;
-import com.sparta.heartvera.domain.follow.entity.Follow;
 import com.sparta.heartvera.domain.follow.repository.FollowRepository;
 import com.sparta.heartvera.domain.like.entity.LikeEnum;
 import com.sparta.heartvera.domain.like.repository.LikeRepository;
-import com.sparta.heartvera.domain.like.service.LikeService;
 import com.sparta.heartvera.domain.post.dto.PostRequestDto;
-import com.sparta.heartvera.domain.post.dto.PostResponseDto;
 import com.sparta.heartvera.domain.post.dto.PublicPostResponseDto;
-import com.sparta.heartvera.domain.post.entity.Post;
 import com.sparta.heartvera.domain.post.entity.PublicPost;
-import com.sparta.heartvera.domain.post.entity.QPublicPost;
 import com.sparta.heartvera.domain.post.repository.PublicPostRepository;
 import com.sparta.heartvera.domain.user.entity.User;
 import com.sparta.heartvera.domain.user.service.UserService;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -90,21 +83,9 @@ public class PublicPostService {
 
   // 좋아하는 비익명 게시글 목록 조회
   @Transactional(readOnly = true)
-  public List<PublicPostResponseDto> getLikePublicPosts(int page, int amount, Long userId) {
-    Pageable pageable = PageRequest.of(page, amount);
+  public List<PublicPostResponseDto> getLikePublicPosts(int page, int pageSize, Long userId) {
     List<Long> likedPostIds = likeRepository.getLikedPublicPostIds(userId);
-
-    List<PublicPost> publicPostList = queryFactory
-        .selectFrom(publicPost)
-        .where(publicPost.id.in(likedPostIds))
-        .orderBy(publicPost.createdAt.desc())
-        .offset(pageable.getOffset())
-        .limit(pageable.getPageSize())
-        .fetch();
-
-    if (publicPostList.isEmpty()) {
-      throw new CustomException(ErrorCode.EMPTY_LIKE);
-    }
+    List<PublicPost> publicPostList = publicPostRepository.findByPublicPostId(page, pageSize, likedPostIds);
 
     List<PublicPostResponseDto> publicPostResponseDtos = new ArrayList<>();
     for (PublicPost publicPost : publicPostList) {
@@ -118,21 +99,10 @@ public class PublicPostService {
   // 팔로워한 사람들의 비익명게시물 목록 조회(생성일자 기준 정렬)
   @Transactional(readOnly = true)
   public List<PublicPostResponseDto> getFollowedPublicPostsOrderByCreatedAt(Long userId, int page, int pageSize) {
-    Pageable pageable = PageRequest.of(page, pageSize);
 
     List<Long> followedUserIds = followRepository.findFollowedUserIds(userId);
 
-    List<PublicPost> publicPostList = queryFactory
-        .selectFrom(publicPost)
-        .where(publicPost.id.in(followedUserIds))
-        .orderBy(publicPost.createdAt.desc())
-        .offset(pageable.getOffset())
-        .limit(pageable.getPageSize())
-        .fetch();
-
-    if (publicPostList.isEmpty()) {
-      throw new CustomException(ErrorCode.EMPTY_FOLLOW);
-    }
+    List<PublicPost> publicPostList = publicPostRepository.findByPublicPostIdOrderByCreatedAt(page, pageSize, followedUserIds);
 
     List<PublicPostResponseDto> publicPostResponseDtos = new ArrayList<>();
     for(PublicPost publicPost : publicPostList) {
@@ -144,24 +114,14 @@ public class PublicPostService {
     return publicPostResponseDtos;
   }
 
-  // 팔로워한 사람들의 비익명게시물 목록 조회(작성자명 기준 정렬)
+  // 팔로워한 사람들의 비익명게시물 목록 조회(작성자명 기준 오름차순 정렬)
   @Transactional(readOnly = true)
   public List<PublicPostResponseDto> getFollowedPublicPostsOrderByUsername(Long userId, int page, int pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
 
     List<Long> followedUserIds = followRepository.findFollowedUserIds(userId);
 
-    List<PublicPost> publicPostList = queryFactory
-        .selectFrom(publicPost)
-        .where(publicPost.id.in(followedUserIds))
-        .orderBy(user.userName.desc())
-        .offset(pageable.getOffset())
-        .limit(pageable.getPageSize())
-        .fetch();
-
-    if (publicPostList.isEmpty()) {
-      throw new CustomException(ErrorCode.EMPTY_FOLLOW);
-    }
+    List<PublicPost> publicPostList = publicPostRepository.findByPublicPostIdOrderByUsername(page, pageSize, followedUserIds);
 
     List<PublicPostResponseDto> publicPostResponseDtos = new ArrayList<>();
     for(PublicPost publicPost : publicPostList) {
