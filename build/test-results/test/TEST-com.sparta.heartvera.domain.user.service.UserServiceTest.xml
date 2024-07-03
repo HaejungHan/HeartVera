@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.sparta.heartvera.domain.user.service.UserServiceTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2024-06-24T04:32:41" hostname="GAEUN" time="1.495">
-  <properties/>
-  <testcase name="현재 비밀번호 불일치" classname="com.sparta.heartvera.domain.user.service.UserServiceTest" time="1.495"/>
-  <system-out><![CDATA[13:32:43.390 [Test worker] INFO CustomException::  -- ExceptionMethod: com.sparta.heartvera.domain.user.service.UserService.updatePassword
-13:32:43.403 [Test worker] INFO CustomException::  -- ErrorCode: 현재 비밀번호와 사용자의 비밀번호가 일치하지 않습니다.
-]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

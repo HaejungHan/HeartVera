@@ -1,6 +1,7 @@
 package com.sparta.heartvera.domain.user.dto;
 
 import com.sparta.heartvera.domain.user.entity.User;
+import jakarta.persistence.criteria.CriteriaBuilder.In;
 import lombok.Getter;
 
 @Getter
@@ -12,6 +13,7 @@ public class UserResponseDto {
   private String description;
   private int likedPostCount;
   private int likedCommentCount;
+
 
   public UserResponseDto(User user) {
     this.userId = user.getUserId();
@@ -28,4 +30,5 @@ public class UserResponseDto {
     this.likedPostCount = likedPostCount;
     this.likedCommentCount = likedCommentCount;
   }
+
 }

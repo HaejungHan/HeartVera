@@ -27,7 +27,7 @@ public class UserController {
 
     // 사용자의 프로필 조회
     @Operation(summary = "사용자 프로필 조회",description = "사용자의 프로필을 조회합니다.")
-    @GetMapping("/users")
+    @GetMapping("/users/profile")
     public ResponseEntity<UserResponseDto> getUser(
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         return ResponseEntity.status(HttpStatus.OK)
