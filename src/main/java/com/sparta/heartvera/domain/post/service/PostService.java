@@ -65,16 +65,17 @@ public class PostService {
         return postId + "번 게시물 삭제 완료";
     }
 
-    public Object getAllPost(int page, int amount) {
+    @Transactional(readOnly = true)
+    public Page<PostResponseDto> getAllPostWithComments(int page, int amount) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page, amount, sort);
-        Page<Post> postList = postRepository.findAll(pageable);
+        Page<Post> postList = postRepository.findAllWithComments(pageable);
 
-        if (postList.getTotalElements() == 0) {
-            return "먼저 작성하여 소식을 알려보세요!";
+        if (postList.isEmpty()) {
+            throw new CustomException(ErrorCode.POST_EMPTY);
         }
 
-        return postList.map(PostResponseDto::new);
+        return postList.map(post -> new PostResponseDto(post));
     }
 
     // 좋아하는 익명 게시글 목록 조회

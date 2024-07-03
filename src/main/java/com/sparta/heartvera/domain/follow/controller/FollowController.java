@@ -3,6 +3,8 @@ package com.sparta.heartvera.domain.follow.controller;
 import com.sparta.heartvera.domain.follow.dto.FollowRequestDto;
 import com.sparta.heartvera.domain.follow.dto.FollowResponseDto;
 import com.sparta.heartvera.domain.follow.service.FollowService;
+import com.sparta.heartvera.domain.user.dto.UserResponseDto;
+import com.sparta.heartvera.domain.user.dto.UserTop10ResponseDto;
 import com.sparta.heartvera.domain.user.entity.User;
 import com.sparta.heartvera.domain.user.service.UserService;
 import com.sparta.heartvera.security.service.UserDetailsImpl;
@@ -57,5 +59,13 @@ public class FollowController {
     User user = userService.findByUserSeq(userDetails.getUser().getUserSeq());
     List<FollowResponseDto> followers = followService.getFollowings(user);
     return ResponseEntity.status(HttpStatus.OK).body(followers);
+  }
+
+  // 팔로워 top10 조회
+  @Operation(summary = "팔로워 top10 조회",description = "팔로워 top10을 조회합니다.")
+  @GetMapping("/followers/top10")
+  public ResponseEntity<List<UserTop10ResponseDto>> getTop10FollowingByToUsers() {
+    List<UserTop10ResponseDto> top10Followers = followService.getTop10FollowingByToUsers();
+    return ResponseEntity.status(HttpStatus.OK).body(top10Followers);
   }
 }

@@ -5,6 +5,9 @@ import com.sparta.heartvera.common.exception.ErrorCode;
 import com.sparta.heartvera.domain.follow.dto.FollowResponseDto;
 import com.sparta.heartvera.domain.follow.entity.Follow;
 import com.sparta.heartvera.domain.follow.repository.FollowRepository;
+import com.sparta.heartvera.domain.like.repository.LikeRepository;
+import com.sparta.heartvera.domain.user.dto.UserResponseDto;
+import com.sparta.heartvera.domain.user.dto.UserTop10ResponseDto;
 import com.sparta.heartvera.domain.user.entity.User;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FollowService {
 
   private final FollowRepository followRepository;
+  private final LikeRepository likeRepository;
 
   @Transactional
   public void followUser(User toUser, User fromUser) {
@@ -53,4 +57,17 @@ public class FollowService {
     }
     return followResponseDtoList;
   }
+
+  // 팔로워 top10 목록 조회기능 추가
+  @Transactional(readOnly = true)
+  public List<UserTop10ResponseDto> getTop10FollowingByToUsers() {
+    List<UserTop10ResponseDto> top10List = followRepository.findTop10Followers();
+
+    if (top10List.isEmpty()) {
+      throw new CustomException(ErrorCode.EMPTY_FOLLOW);
+    }
+
+    return top10List;
+  }
+
 }
