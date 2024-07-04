@@ -1,12 +1,13 @@
 package com.sparta.heartvera.domain.post.repository;
 
 import static com.sparta.heartvera.domain.post.entity.QPublicPost.publicPost;
-import static com.sparta.heartvera.domain.user.entity.QUser.user;
 
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.heartvera.common.exception.CustomException;
 import com.sparta.heartvera.common.exception.ErrorCode;
+import com.sparta.heartvera.domain.post.dto.PostSearchCond;
 import com.sparta.heartvera.domain.post.entity.PublicPost;
 import com.sparta.heartvera.domain.post.entity.QPublicPost;
 import java.util.List;
@@ -47,7 +48,7 @@ public class PublicPostCustomRepositoryImpl implements PublicPostCustomRepositor
 
   }
 
-  public List<PublicPost> findByPublicPostId(int page, int pageSize, List<Long> followedUserIds, String orderBy) {
+  public List<PublicPost> findByPublicPostId(int page, int pageSize, List<Long> followedUserIds, String orderBy, PostSearchCond searchCond) {
     Pageable pageable = PageRequest.of(page, pageSize);
     QPublicPost qPublicPost = QPublicPost.publicPost;
     OrderSpecifier<?> orderSpecifier = null;
@@ -62,7 +63,7 @@ public class PublicPostCustomRepositoryImpl implements PublicPostCustomRepositor
 
     List<PublicPost> publicPostList = jpaQueryFactory
           .selectFrom(publicPost)
-          .where(publicPost.user.userSeq.in(followedUserIds))
+          .where(isWhere(followedUserIds, searchCond))
           .orderBy(orderSpecifier)
           .offset(pageable.getOffset())
           .limit(pageable.getPageSize())
@@ -70,6 +71,13 @@ public class PublicPostCustomRepositoryImpl implements PublicPostCustomRepositor
 
       return publicPostList;
 
+  }
+
+  private BooleanExpression isWhere (List<Long> followedUserIds, PostSearchCond searchCond){
+    if(searchCond.getUserName().isEmpty()){
+      return publicPost.user.userSeq.in(followedUserIds);
+    }
+    return publicPost.user.userSeq.in(followedUserIds).and(publicPost.user.userName.eq(searchCond.getUserName()));
   }
 
 }

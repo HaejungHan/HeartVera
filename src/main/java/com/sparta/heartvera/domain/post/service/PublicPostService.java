@@ -12,6 +12,7 @@ import com.sparta.heartvera.domain.follow.repository.FollowRepository;
 import com.sparta.heartvera.domain.like.entity.LikeEnum;
 import com.sparta.heartvera.domain.like.repository.LikeRepository;
 import com.sparta.heartvera.domain.post.dto.PostRequestDto;
+import com.sparta.heartvera.domain.post.dto.PostSearchCond;
 import com.sparta.heartvera.domain.post.dto.PublicPostResponseDto;
 import com.sparta.heartvera.domain.post.entity.PublicPost;
 import com.sparta.heartvera.domain.post.repository.PublicPostRepository;
@@ -104,14 +105,15 @@ public class PublicPostService {
 
   // 팔로워한 사람들의 비익명게시물 목록 조회(생성일자,작성자명 기준 정렬)
   @Transactional(readOnly = true)
-  public List<PublicPostResponseDto> getFollowedPublicPostsOrderByCreatedAt(Long userId, int page, int pageSize, String orderBy) {
+  public List<PublicPostResponseDto> getFollowedPublicPosts(Long userId, int page, int pageSize, String orderBy, PostSearchCond searchCond) {
 
     List<Long> followedUserIds = followRepository.findFollowedUserIds(userId);
-    List<PublicPost> publicPostList = publicPostRepository.findByPublicPostId(page, pageSize, followedUserIds, orderBy);
 
-    if(publicPostList.isEmpty()) {
+    if(followedUserIds.isEmpty()) {
       throw new CustomException(ErrorCode.EMPTY_FOLLOW);
     }
+
+    List<PublicPost> publicPostList = publicPostRepository.findByPublicPostId(page, pageSize, followedUserIds, orderBy, searchCond);
 
     List<PublicPostResponseDto> publicPostResponseDtos = new ArrayList<>();
     for(PublicPost publicPost : publicPostList) {
