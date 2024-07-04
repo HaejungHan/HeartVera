@@ -3,6 +3,7 @@ package com.sparta.heartvera.domain.post.repository;
 import static com.sparta.heartvera.domain.post.entity.QPublicPost.publicPost;
 import static com.sparta.heartvera.domain.user.entity.QUser.user;
 
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.heartvera.common.exception.CustomException;
 import com.sparta.heartvera.common.exception.ErrorCode;
@@ -46,32 +47,29 @@ public class PublicPostCustomRepositoryImpl implements PublicPostCustomRepositor
 
   }
 
-  public List<PublicPost> findByPublicPostIdOrderByCreatedAt(int page, int pageSize, List<Long> followedUserIds) {
+  public List<PublicPost> findByPublicPostId(int page, int pageSize, List<Long> followedUserIds, String orderBy) {
     Pageable pageable = PageRequest.of(page, pageSize);
     QPublicPost qPublicPost = QPublicPost.publicPost;
+    OrderSpecifier<?> orderSpecifier = null;
 
-      List<PublicPost> publicPostList = jpaQueryFactory
+    if ("createdAt".equals(orderBy)) {
+      orderSpecifier = publicPost.createdAt.desc();
+    } else if ("username".equals(orderBy)) {
+      orderSpecifier = publicPost.user.userName.asc();
+    } else {
+      throw new CustomException(ErrorCode.POST_ORDER_ERROR);
+    }
+
+    List<PublicPost> publicPostList = jpaQueryFactory
           .selectFrom(publicPost)
           .where(publicPost.user.userSeq.in(followedUserIds))
-          .orderBy(publicPost.createdAt.desc())
+          .orderBy(orderSpecifier)
           .offset(pageable.getOffset())
           .limit(pageable.getPageSize())
           .fetch();
+
       return publicPostList;
 
   }
-  public List<PublicPost> findByPublicPostIdOrderByUsername(int page, int pageSize, List<Long> followedUserIds) {
-    Pageable pageable = PageRequest.of(page, pageSize);
-    QPublicPost qPublicPost = QPublicPost.publicPost;
 
-      List<PublicPost> publicPostList = jpaQueryFactory
-          .selectFrom(publicPost)
-          .where(publicPost.user.userSeq.in(followedUserIds))
-          .orderBy(user.userName.asc())
-          .offset(pageable.getOffset())
-          .limit(pageable.getPageSize())
-          .fetch();
-      return publicPostList;
-
-  }
 }

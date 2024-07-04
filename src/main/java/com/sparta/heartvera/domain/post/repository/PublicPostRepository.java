@@ -12,6 +12,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PublicPostRepository extends JpaRepository<PublicPost, Long>, PublicPostCustomRepository {
 
-  Page<PublicPost> findByUser_UserSeqInOrderByCreatedAtDesc(Collection<Long> userIds, Pageable pageable);
+//  Page<PublicPost> findByUser_UserSeqInOrderByCreatedAtDesc(Collection<Long> userIds, Pageable pageable);
 
 }

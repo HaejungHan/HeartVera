@@ -102,12 +102,12 @@ public class PublicPostService {
     return publicPostResponseDtos;
   }
 
-  // 팔로워한 사람들의 비익명게시물 목록 조회(생성일자 기준 정렬)
+  // 팔로워한 사람들의 비익명게시물 목록 조회(생성일자,작성자명 기준 정렬)
   @Transactional(readOnly = true)
-  public List<PublicPostResponseDto> getFollowedPublicPostsOrderByCreatedAt(Long userId, int page, int pageSize) {
+  public List<PublicPostResponseDto> getFollowedPublicPostsOrderByCreatedAt(Long userId, int page, int pageSize, String orderBy) {
 
     List<Long> followedUserIds = followRepository.findFollowedUserIds(userId);
-    List<PublicPost> publicPostList = publicPostRepository.findByPublicPostIdOrderByCreatedAt(page, pageSize, followedUserIds);
+    List<PublicPost> publicPostList = publicPostRepository.findByPublicPostId(page, pageSize, followedUserIds, orderBy);
 
     if(publicPostList.isEmpty()) {
       throw new CustomException(ErrorCode.EMPTY_FOLLOW);
@@ -118,29 +118,6 @@ public class PublicPostService {
         int likedCount = likeRepository.getLikesCount(publicPost.getId(), LikeEnum.PUBPOST);
         PublicPostResponseDto responseDto = new PublicPostResponseDto(publicPost, likedCount);
         publicPostResponseDtos.add(responseDto);
-    }
-
-    return publicPostResponseDtos;
-  }
-
-  // 팔로워한 사람들의 비익명게시물 목록 조회(작성자명 기준 오름차순 정렬)
-  @Transactional(readOnly = true)
-  public List<PublicPostResponseDto> getFollowedPublicPostsOrderByUsername(Long userId, int page, int pageSize) {
-    Pageable pageable = PageRequest.of(page, pageSize);
-
-    List<Long> followedUserIds = followRepository.findFollowedUserIds(userId);
-
-    List<PublicPost> publicPostList = publicPostRepository.findByPublicPostIdOrderByUsername(page, pageSize, followedUserIds);
-
-    if(publicPostList.isEmpty()) {
-      throw new CustomException(ErrorCode.EMPTY_FOLLOW);
-    }
-
-    List<PublicPostResponseDto> publicPostResponseDtos = new ArrayList<>();
-    for(PublicPost publicPost : publicPostList) {
-      int likedCount = likeRepository.getLikesCount(publicPost.getId(), LikeEnum.PUBPOST);
-      PublicPostResponseDto responseDto = new PublicPostResponseDto(publicPost, likedCount);
-      publicPostResponseDtos.add(responseDto);
     }
 
     return publicPostResponseDtos;
