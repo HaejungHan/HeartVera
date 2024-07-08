@@ -21,6 +21,7 @@ public class FollowCustomRepositoryImpl implements FollowCustomRepository {
   private final JPAQueryFactory jpaQueryFactory;
   private final LikeRepository likeRepository;
 
+  @Transactional(readOnly = true)
   public List<Long> findFollowedUserIds(Long userId) {
     QFollow follow = QFollow.follow;
 
@@ -49,6 +50,7 @@ public class FollowCustomRepositoryImpl implements FollowCustomRepository {
         .from(follow)
         .leftJoin(follow.toUser, user)
         .groupBy(user.userId, user.userName, user.userEmail, user.description)
+        .orderBy(follow.toUser.count().intValue().desc())
         .limit(10)
         .fetch();
     return topFollowers;
